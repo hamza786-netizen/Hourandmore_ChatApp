@@ -6,6 +6,7 @@ import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../test_firestore.dart';
+import 'settings_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final AppUser? receiverUser;
@@ -282,6 +283,22 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ],
         ),
         actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 22),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+              tooltip: 'Settings',
+            ),
+          ),
           Container(
             margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
