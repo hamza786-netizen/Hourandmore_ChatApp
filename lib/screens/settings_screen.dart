@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/biometric_service.dart';
 import 'package:local_auth/local_auth.dart';
+// import 'listings_screen.dart'; // Removed - no longer used in settings
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -226,7 +227,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Device Information Section
               _buildSectionTitle('Device Information'),

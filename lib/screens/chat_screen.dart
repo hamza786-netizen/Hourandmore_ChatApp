@@ -238,45 +238,52 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                Text(
-                  widget.receiverUser!.displayName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    widget.receiverUser!.displayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                StreamBuilder<List<Message>>(
-                  stream: chatProvider.streamConversationMessages(
-                    currentUser.uid,
-                    widget.receiverUser!.uid,
+                  const SizedBox(height: 2),
+                  StreamBuilder<List<Message>>(
+                    stream: chatProvider.streamConversationMessages(
+                      currentUser.uid,
+                      widget.receiverUser!.uid,
+                    ),
+                    builder: (context, snapshot) {
+                      final isOnline = !snapshot.hasError && 
+                                      snapshot.connectionState == ConnectionState.active;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isOnline ? Colors.greenAccent : Colors.grey,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              isOnline ? 'Online' : 'Offline',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  builder: (context, snapshot) {
-                    final isOnline = !snapshot.hasError && 
-                                    snapshot.connectionState == ConnectionState.active;
-                    return Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: isOnline ? Colors.greenAccent : Colors.grey,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isOnline ? 'Online' : 'Offline',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
                 ],
               ),
             ),

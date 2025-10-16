@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../models/user.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
+import 'fcm_test_screen.dart';
 
 class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
@@ -73,6 +74,20 @@ class UsersScreen extends StatelessWidget {
             tooltip: 'Sign Out',
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const FCMTestScreen(),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF6C63FF),
+        foregroundColor: Colors.white,
+        tooltip: 'Test FCM Notifications',
+        child: const Icon(Icons.notifications_active),
       ),
       body: Consumer<AuthProvider>(
         builder: (context, auth, _) {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'register_screen.dart';
 import 'chat_screen.dart';
+import 'listings_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -99,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -244,29 +246,42 @@ class _LoginScreenState extends State<LoginScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Consumer<AuthProvider>(
-                                builder: (context, auth, _) {
-                                  if (!auth.biometricAvailable) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Row(
-                                    children: [
-                                      Checkbox(
-                                        value: _rememberMe,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _rememberMe = value ?? false;
-                                          });
-                                        },
-                                      ),
-                                      const Text('Remember me'),
-                                    ],
-                                  );
-                                },
+                              Flexible(
+                                child: Consumer<AuthProvider>(
+                                  builder: (context, auth, _) {
+                                    if (!auth.biometricAvailable) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Checkbox(
+                                          value: _rememberMe,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _rememberMe = value ?? false;
+                                            });
+                                          },
+                                        ),
+                                        const Flexible(
+                                          child: Text(
+                                            'Remember me',
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
-                              TextButton(
-                                onPressed: _handleForgotPassword,
-                                child: const Text('Forgot Password?'),
+                              Flexible(
+                                child: TextButton(
+                                  onPressed: _handleForgotPassword,
+                                  child: const Text(
+                                    'Forgot Password?',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -339,6 +354,31 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // View Listings Button
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ListingsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.list_alt),
+                      label: const Text('View Listings'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white, width: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),

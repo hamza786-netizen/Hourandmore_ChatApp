@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import '../models/message.dart';
 import '../database/database_helper.dart';
 import 'firebase_service.dart';
+import 'notification_service.dart';
 
 class ChatService {
   static final ChatService instance = ChatService._init();
   
   final DatabaseHelper _localDb = DatabaseHelper.instance;
   final FirebaseService _firebaseService = FirebaseService.instance;
+  final NotificationService _notificationService = NotificationService.instance;
 
   ChatService._init();
 
@@ -47,6 +49,64 @@ class ChatService {
   // Get local messages (for offline mode)
   Future<List<Message>> getLocalMessages() async {
     return await _localDb.getAllMessages();
+  }
+
+  // Handle incoming message and show notification
+  Future<void> handleIncomingMessage(Message message, String currentUserId) async {
+    try {
+      // Only show notification if the message is for the current user
+      if (message.receiverId == currentUserId) {
+        if (kDebugMode) {
+          print('💬 Handling incoming message:');
+          print('   From: ${message.senderEmail}');
+          print('   To: ${message.receiverId}');
+          print('   Text: ${message.text}');
+        }
+
+        // Extract sender name from email (remove @domain.com)
+        final senderName = message.senderEmail.split('@').first;
+        
+        // Show chat notification
+        await _notificationService.showChatNotification(
+          senderName: senderName,
+          messageText: message.text,
+          senderId: message.senderId,
+          receiverId: message.receiverId,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error handling incoming message: $e');
+      }
+    }
+  }
+
+  // Send notification to receiver when message is sent
+  Future<void> sendMessageNotification(Message message, String receiverToken) async {
+    try {
+      // Extract sender name from email
+      final senderName = message.senderEmail.split('@').first;
+      
+      if (kDebugMode) {
+        print('📤 Sending message notification:');
+        print('   To: ${message.receiverId}');
+        print('   From: $senderName');
+        print('   Message: ${message.text}');
+      }
+
+      // Send notification via your API
+      await _notificationService.sendChatNotification(
+        receiverToken: receiverToken,
+        senderName: senderName,
+        messageText: message.text,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error sending message notification: $e');
+      }
+    }
   }
 
   // Get conversation messages from local database

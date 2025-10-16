@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../models/message.dart';
 import '../services/chat_service.dart';
 import '../services/firebase_service.dart';
+import '../services/notification_service.dart';
 
 class ChatProvider with ChangeNotifier {
   final ChatService _chatService = ChatService.instance;
   final FirebaseService _firebaseService = FirebaseService.instance;
+  final NotificationService _notificationService = NotificationService.instance;
 
   List<Message> _messages = [];
   bool _isLoading = false;
@@ -23,6 +25,7 @@ class ChatProvider with ChangeNotifier {
     required String senderId,
     required String senderEmail,
     required String receiverId,
+    String? receiverToken,
   }) async {
     try {
       final message = Message(
@@ -34,6 +37,12 @@ class ChatProvider with ChangeNotifier {
       );
 
       await _chatService.sendMessage(message);
+      
+      // Send notification to receiver if token is provided
+      if (receiverToken != null) {
+        await _chatService.sendMessageNotification(message, receiverToken);
+      }
+      
       _errorMessage = null;
       notifyListeners();
     } catch (e) {
@@ -62,6 +71,16 @@ class ChatProvider with ChangeNotifier {
     String userId2,
   ) {
     return _firebaseService.streamConversationMessages(userId1, userId2);
+  }
+
+  // Handle incoming message and show notification
+  Future<void> handleIncomingMessage(Message message, String currentUserId) async {
+    try {
+      await _chatService.handleIncomingMessage(message, currentUserId);
+    } catch (e) {
+      _errorMessage = 'Failed to handle incoming message: $e';
+      notifyListeners();
+    }
   }
 
   // Delete all messages
