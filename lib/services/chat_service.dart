@@ -24,6 +24,9 @@ class ChatService {
       if (firebaseId != null) {
         // Update local message with Firebase ID and mark as synced
         await _localDb.updateMessageSyncStatus(localId, true);
+        
+        // Send push notification to receiver
+        await _sendPushNotification(message);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -189,6 +192,48 @@ class ChatService {
     } catch (e) {
       if (kDebugMode) {
         print('Failed to sync from Firebase: $e');
+      }
+    }
+  }
+
+  // Send push notification to receiver
+  Future<void> _sendPushNotification(Message message) async {
+    try {
+      if (kDebugMode) {
+        print('🔔 Sending push notification for message:');
+        print('   From: ${message.senderEmail}');
+        print('   To: ${message.receiverId}');
+        print('   Text: ${message.text}');
+      }
+
+      // Get receiver's FCM token
+      final receiverToken = await _firebaseService.getUserFcmToken(message.receiverId);
+      
+      if (receiverToken == null) {
+        if (kDebugMode) {
+          print('⚠️ No FCM token found for receiver: ${message.receiverId}');
+        }
+        return;
+      }
+
+      // Extract sender name from email
+      final senderName = message.senderEmail.split('@').first;
+
+      // Send notification via NotificationService
+      await _notificationService.sendChatNotification(
+        receiverToken: receiverToken,
+        senderName: senderName,
+        messageText: message.text,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+      );
+
+      if (kDebugMode) {
+        print('✅ Push notification sent successfully!');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error sending push notification: $e');
       }
     }
   }

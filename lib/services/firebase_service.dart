@@ -1,13 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/message.dart';
+import '../models/user.dart';
 
 class FirebaseService {
   static final FirebaseService instance = FirebaseService._init();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
-  // Collection reference
+  // Collection references
   final String _messagesCollection = 'messages';
+  final String _usersCollection = 'users';
 
   FirebaseService._init();
 
@@ -233,6 +235,102 @@ class FirebaseService {
       if (kDebugMode) {
         print('Error marking message as read: $e');
       }
+    }
+  }
+
+  // ========== USER MANAGEMENT METHODS ==========
+
+  // Create or update user in Firebase
+  Future<void> createOrUpdateUser(AppUser user) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(user.uid).set(user.toMap());
+      if (kDebugMode) {
+        print('✅ User created/updated in Firebase: ${user.uid}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error creating/updating user: $e');
+      }
+      rethrow;
+    }
+  }
+
+  // Get user by UID
+  Future<AppUser?> getUser(String uid) async {
+    try {
+      final doc = await _firestore.collection(_usersCollection).doc(uid).get();
+      if (doc.exists) {
+        return AppUser.fromMap(doc.data()!);
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting user: $e');
+      }
+      return null;
+    }
+  }
+
+  // Update user's FCM token
+  Future<void> updateUserFcmToken(String uid, String fcmToken) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(uid).update({
+        'fcmToken': fcmToken,
+        'lastLoginAt': DateTime.now().millisecondsSinceEpoch,
+      });
+      if (kDebugMode) {
+        print('✅ FCM token updated for user: $uid');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error updating FCM token: $e');
+      }
+      rethrow;
+    }
+  }
+
+  // Get user's FCM token
+  Future<String?> getUserFcmToken(String uid) async {
+    try {
+      final doc = await _firestore.collection(_usersCollection).doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        return data['fcmToken'] as String?;
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting user FCM token: $e');
+      }
+      return null;
+    }
+  }
+
+  // Get all users (for user list)
+  Future<List<AppUser>> getAllUsers() async {
+    try {
+      final snapshot = await _firestore.collection(_usersCollection).get();
+      return snapshot.docs.map((doc) => AppUser.fromMap(doc.data())).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting all users: $e');
+      }
+      return [];
+    }
+  }
+
+  // Delete user
+  Future<void> deleteUser(String uid) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(uid).delete();
+      if (kDebugMode) {
+        print('User deleted: $uid');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error deleting user: $e');
+      }
+      rethrow;
     }
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // Top-level function for background message handling
 @pragma('vm:entry-point')
@@ -439,14 +441,34 @@ class NotificationService {
         print('   Message: $messageText');
       }
 
-      // This would typically call your backend API
-      // For now, we'll just log it since you already have the API working
+      // Call the backend API to send FCM notification
+      final response = await http.post(
+        Uri.parse('https://staging.hourandmore.sa/api/send-fcm-notification'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'title': senderName,
+          'message': messageText,
+          'token': receiverToken,
+        }),
+      );
+
       if (kDebugMode) {
-        print('📤 Chat notification would be sent via your API:');
-        print('   URL: https://staging.hourandmore.sa/api/send-fcm-notification');
-        print('   Title: $senderName');
-        print('   Body: $messageText');
-        print('   Token: ${receiverToken.substring(0, 20)}...');
+        print('📤 FCM API Response:');
+        print('   Status: ${response.statusCode}');
+        print('   Body: ${response.body}');
+      }
+
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('✅ Chat notification sent successfully!');
+        }
+      } else {
+        if (kDebugMode) {
+          print('❌ Failed to send chat notification. Status: ${response.statusCode}');
+          print('   Response: ${response.body}');
+        }
       }
     } catch (e) {
       if (kDebugMode) {

@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user.dart';
+import 'notification_service.dart';
 
 class AuthService {
   static final AuthService instance = AuthService._init();
   
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final NotificationService _notificationService = NotificationService.instance;
   final String _usersCollection = 'users';
 
   AuthService._init();
@@ -39,6 +41,9 @@ class AuthService {
       // Update display name
       await user.updateDisplayName(displayName);
 
+      // Get FCM token
+      final fcmToken = _notificationService.fcmToken;
+
       // Create user document in Firestore
       final appUser = AppUser(
         uid: user.uid,
@@ -47,6 +52,7 @@ class AuthService {
         createdAt: DateTime.now(),
         lastLoginAt: DateTime.now(),
         biometricEnabled: false,
+        fcmToken: fcmToken,
       );
 
       await _firestore
@@ -76,10 +82,19 @@ class AuthService {
       final user = userCredential.user;
       if (user == null) return null;
 
-      // Update last login time
-      await _firestore.collection(_usersCollection).doc(user.uid).update({
-        'lastLoginAt': DateTime.now().millisecondsSinceEpoch,
-      });
+      // Get FCM token and update user document
+      final fcmToken = _notificationService.fcmToken;
+      if (fcmToken != null) {
+        await _firestore.collection(_usersCollection).doc(user.uid).update({
+          'fcmToken': fcmToken,
+          'lastLoginAt': DateTime.now().millisecondsSinceEpoch,
+        });
+      } else {
+        // Update last login time only
+        await _firestore.collection(_usersCollection).doc(user.uid).update({
+          'lastLoginAt': DateTime.now().millisecondsSinceEpoch,
+        });
+      }
 
       return await getUserData(user.uid);
     } on FirebaseAuthException catch (e) {
@@ -120,6 +135,23 @@ class AuthService {
           .update(user.toMap());
     } catch (e) {
       throw Exception('Failed to update user data: $e');
+    }
+  }
+
+  // Update FCM token for current user
+  Future<void> updateFcmToken() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final fcmToken = _notificationService.fcmToken;
+      if (fcmToken != null) {
+        await _firestore.collection(_usersCollection).doc(user.uid).update({
+          'fcmToken': fcmToken,
+        });
+      }
+    } catch (e) {
+      throw Exception('Failed to update FCM token: $e');
     }
   }
 

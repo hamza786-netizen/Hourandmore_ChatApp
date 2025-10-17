@@ -5,6 +5,7 @@ class AppUser {
   final DateTime createdAt;
   final DateTime? lastLoginAt;
   final bool biometricEnabled;
+  final String? fcmToken;
 
   AppUser({
     required this.uid,
@@ -13,6 +14,7 @@ class AppUser {
     required this.createdAt,
     this.lastLoginAt,
     this.biometricEnabled = false,
+    this.fcmToken,
   });
 
   // Convert User to Map for Firestore
@@ -24,6 +26,7 @@ class AppUser {
       'createdAt': createdAt.millisecondsSinceEpoch,
       'lastLoginAt': lastLoginAt?.millisecondsSinceEpoch,
       'biometricEnabled': biometricEnabled,
+      'fcmToken': fcmToken,
     };
   }
 
@@ -38,6 +41,7 @@ class AppUser {
           ? DateTime.fromMillisecondsSinceEpoch(map['lastLoginAt'] as int)
           : null,
       biometricEnabled: map['biometricEnabled'] as bool? ?? false,
+      fcmToken: map['fcmToken'] as String?,
     );
   }
 
@@ -49,6 +53,7 @@ class AppUser {
     DateTime? createdAt,
     DateTime? lastLoginAt,
     bool? biometricEnabled,
+    String? fcmToken,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -57,6 +62,7 @@ class AppUser {
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+      fcmToken: fcmToken ?? this.fcmToken,
     );
   }
 }
